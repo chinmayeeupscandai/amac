@@ -37,6 +37,17 @@
       font-weight: 600;
       color: #444;
     }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ff99cc;
+      border-radius: 8px;
+      outline: none;
+      font-size: 16px;
+    }
+    input:focus {
+      border-color: #ff4d94;
+    }
     select {
       width: 100%;
       padding: 10px;
@@ -85,7 +96,11 @@
     <h1>Ancient, Medieval, Art & Culture MCQ Generator</h1>
 
     <label for="topic">Enter Topic</label>
-    <input type="text" id="topic" placeholder="e.g. Harappan culture, Chola administration, Temple architecture" />
+    <input
+      type="text"
+      id="topic"
+      placeholder="e.g. Harappan culture, Chola administration, Temple architecture"
+    />
 
     <label for="difficulty">Enter Difficulty</label>
     <select id="difficulty">
@@ -96,11 +111,29 @@
 
     <button id="submitBtn">Generate Questions</button>
 
-    <div class="response-box" id="responseBox">Enter details above and click Generate.</div>
+    <div class="response-box" id="responseBox">
+      Enter details above and click Generate.
+    </div>
   </div>
 
   <script>
     const WEBHOOK = 'https://hook.eu2.make.com/55ejqs330rd6sil3zx0dyggsv98xw03r';
+    const CASHFREE_URL = 'https://payments.cashfree.com/forms/amacmcqs';
+
+    const params = new URLSearchParams(window.location.search);
+    const paymentDone = params.get('paid') === '1';
+
+    // 🔒 FORCE PAYMENT ON PAGE LOAD
+    if (!paymentDone) {
+      const returnUrl =
+        window.location.origin +
+        window.location.pathname +
+        '?paid=1';
+
+      window.location.replace(
+        CASHFREE_URL + `?return_url=${encodeURIComponent(returnUrl)}`
+      );
+    }
 
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const topic = document.getElementById('topic').value.trim();
@@ -123,10 +156,8 @@
         });
 
         const data = await res.text();
-        responseBox.innerText = `📘 Topic: ${topic}
-🎯 Difficulty: ${difficulty}
-
-${data}`;
+        responseBox.innerText =
+          `📘 Topic: ${topic}\n🎯 Difficulty: ${difficulty}\n\n${data}`;
 
       } catch (err) {
         responseBox.innerText = 'Error sending data. Please try again.';
