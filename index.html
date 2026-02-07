@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ancient, Medieval, Art & Culture MCQ Generator</title>
+
   <style>
     body {
       margin: 0;
@@ -17,6 +18,7 @@
       padding: 40px 0;
       overflow-y: auto;
     }
+
     .container {
       background-color: #ffe6f2;
       border-radius: 16px;
@@ -26,17 +28,20 @@
       max-width: 700px;
       text-align: justify;
     }
+
     h1 {
       color: #ff4d94;
       margin-bottom: 20px;
       text-align: center;
     }
+
     label {
       display: block;
       margin: 12px 0 6px;
       font-weight: 600;
       color: #444;
     }
+
     input, select {
       width: 100%;
       padding: 10px;
@@ -47,9 +52,11 @@
       box-sizing: border-box;
       background: #fff;
     }
+
     input:focus, select:focus {
       border-color: #ff4d94;
     }
+
     button {
       margin-top: 24px;
       background-color: #ff4d94;
@@ -62,9 +69,11 @@
       transition: background 0.2s ease;
       width: 100%;
     }
+
     button:hover {
       background-color: #ff1a75;
     }
+
     .response-box {
       margin-top: 20px;
       padding: 20px;
@@ -79,11 +88,40 @@
       overflow-y: auto;
       white-space: pre-wrap;
     }
+
     /* Control Visibility */
     #mainPortal { display: none; }
     #paymentGate { display: block; text-align: center; }
+
+    /* ✅ Progress bar (ADDED ONLY) */
+    .progress-wrapper {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #ffd6e8;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff4d94, #ff99cc);
+      animation: loading 1.3s infinite;
+    }
+
+    @keyframes loading {
+      0% { width: 0%; }
+      50% { width: 70%; }
+      100% { width: 100%; }
+    }
   </style>
 </head>
+
 <body>
 
   <div class="container" id="paymentGate">
@@ -107,7 +145,17 @@
     </select>
 
     <button id="submitBtn">Generate Questions</button>
-    <div class="response-box" id="responseBox">Enter details above and click Generate.</div>
+
+    <!-- ✅ Progress bar added -->
+    <div class="progress-wrapper" id="progressWrapper">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
+    <div class="response-box" id="responseBox">
+      Enter details above and click Generate.
+    </div>
   </div>
 
   <script>
@@ -116,7 +164,6 @@
 
     window.onload = function() {
       const params = new URLSearchParams(window.location.search);
-      // We check for SUCCESS (standard Cashfree response) 
       const status = params.get('payment_status');
       const alreadyPaid = localStorage.getItem('amac_paid_verified') === 'true';
 
@@ -126,7 +173,6 @@
     };
 
     function handlePayment() {
-      // Directs to your Cashfree form
       window.location.href = CASHFREE_URL;
     }
 
@@ -134,10 +180,9 @@
       localStorage.setItem('amac_paid_verified', 'true');
       document.getElementById('paymentGate').style.display = 'none';
       document.getElementById('mainPortal').style.display = 'block';
-      
-      // Clean up the URL so the 'success' text isn't just sitting there
+
       if (window.history.replaceState) {
-          window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
 
@@ -145,12 +190,14 @@
       const topic = document.getElementById('topic').value.trim();
       const difficulty = document.getElementById('difficulty').value.trim();
       const responseBox = document.getElementById('responseBox');
+      const progress = document.getElementById('progressWrapper');
 
       if (!topic || !difficulty) {
         responseBox.innerText = 'Please fill in both fields.';
         return;
       }
 
+      progress.style.display = 'block';
       responseBox.innerText = 'Generating questions...';
 
       try {
@@ -160,9 +207,12 @@
           body: JSON.stringify({ topic, difficulty })
         });
         const data = await res.text();
-        responseBox.innerText = `📘 Topic: ${topic}\n🎯 Difficulty: ${difficulty}\n\n${data}`;
+        responseBox.innerText =
+          `📘 Topic: ${topic}\n🎯 Difficulty: ${difficulty}\n\n${data}`;
       } catch (err) {
         responseBox.innerText = 'Error sending data. Please try again.';
+      } finally {
+        progress.style.display = 'none';
       }
     });
   </script>
